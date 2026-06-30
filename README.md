@@ -27,10 +27,17 @@ Generate sample trajectory logs:
 python data_generation/generate_scenarios.py --count 1200 --output data_generation/sample_trajectories.jsonl --seed 42
 ```
 
+Generate SWE-bench Lite pseudo trajectories and merge them with simulator logs:
+
+```bash
+python data_generation/swe_bench_adapter.py --limit 20 --output data_generation/swe_bench_lite_trajectories.jsonl
+python data_generation/merge_trajectories.py --inputs data_generation/sample_trajectories.jsonl data_generation/swe_bench_lite_trajectories.jsonl --output data_generation/combined_trajectories.jsonl
+```
+
 Process trajectories into train/validation/test CSVs:
 
 ```bash
-python preprocessing/processing_script.py --input data_generation/sample_trajectories.jsonl --output-dir data/processed
+python preprocessing/processing_script.py --input data_generation/combined_trajectories.jsonl --output-dir data/processed
 ```
 
 Train local models:

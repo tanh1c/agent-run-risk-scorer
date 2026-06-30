@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-SOURCE_COLUMNS = ["source_simulator", "source_mini_llm_agent"]
+SOURCE_COLUMNS = ["source_simulator", "source_mini_llm_agent", "source_swe_bench_lite"]
 TASK_KEYWORDS = {
     "login": ["auth", "login", "schemas"],
     "token": ["auth", "login", "schemas"],
@@ -65,10 +65,10 @@ def extract_features(record: dict) -> dict:
         "used_network_command": as_bool(record.get("used_network_command")),
         "summary_claim_supported": as_bool(record.get("summary_claim_supported")),
         "tool_sequence_valid": as_bool(tool_sequence_valid(tools_called, commands_run)),
-        "source_simulator": int(source == "simulator"),
-        "source_mini_llm_agent": int(source == "mini_llm_agent"),
         "label": record["label"],
     }
+    for column in SOURCE_COLUMNS:
+        row[column] = int(column == f"source_{source}")
     return row
 
 

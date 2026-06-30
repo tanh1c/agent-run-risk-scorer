@@ -18,5 +18,6 @@
     "tool_sequence_valid"
   ],
   "categorical_features": ["source"],
+  "source_columns": ["source_simulator", "source_mini_llm_agent", "source_swe_bench_lite"],
   "target": "label"
 }
