@@ -1,0 +1,22 @@
+{
+  "numeric_features": [
+    "num_files_read",
+    "num_files_modified",
+    "num_tools_called",
+    "num_commands_run",
+    "diff_total_lines",
+    "task_file_relevance_score",
+    "latency_total_ms"
+  ],
+  "boolean_features": [
+    "tests_passed",
+    "lint_passed",
+    "touched_sensitive_files",
+    "destructive_command_detected",
+    "used_network_command",
+    "summary_claim_supported",
+    "tool_sequence_valid"
+  ],
+  "categorical_features": ["source"],
+  "target": "label"
+}

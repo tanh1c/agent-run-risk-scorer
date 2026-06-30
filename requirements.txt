@@ -1,0 +1,13 @@
+boto3
+sagemaker
+pandas
+numpy
+scikit-learn
+xgboost
+joblib
+pytest
+ruff
+fastapi
+pydantic
+uvicorn
+python-dotenv

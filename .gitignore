@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.env
+.venv/
+venv/
+data/processed/
+models/
+runs/
+*.tar.gz
