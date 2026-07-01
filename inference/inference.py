@@ -1,11 +1,13 @@
 import json
 from pathlib import Path
 
-import joblib
 import pandas as pd
 from xgboost import XGBClassifier
 
-from inference.decision_policy import decide
+try:
+    from inference.decision_policy import decide
+except ModuleNotFoundError:
+    from decision_policy import decide
 
 
 FEATURE_COLUMNS = [
@@ -35,8 +37,7 @@ def model_fn(model_dir):
     model.load_model(model_path / "xgboost_model.json")
     return {
         "model": model,
-        # Only load model artifacts produced by this project's training scripts.
-        "label_encoder": joblib.load(model_path / "label_encoder.joblib"),
+        "labels": json.loads((model_path / "label_classes.json").read_text(encoding="utf-8")),
     }
 
 
@@ -52,8 +53,7 @@ def predict_fn(input_data, model_artifacts):
     features = input_data["features"] if "features" in input_data else input_data
     row = {column: features.get(column, 0) for column in FEATURE_COLUMNS}
     probabilities = model_artifacts["model"].predict_proba(pd.DataFrame([row]))[0]
-    labels = model_artifacts["label_encoder"].inverse_transform(range(len(probabilities)))
-    return decide(features, dict(zip(labels, probabilities.tolist())))
+    return decide(features, dict(zip(model_artifacts["labels"], probabilities.tolist())))
 
 
 def output_fn(prediction, response_content_type):
