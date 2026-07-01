@@ -3,6 +3,7 @@ import zipfile
 
 deploy_module = importlib.import_module("lambda.deploy_api_gateway")
 build_resource_names = deploy_module.build_resource_names
+cleanup = deploy_module.cleanup
 deploy = deploy_module.deploy
 package_lambda = deploy_module.package_lambda
 
@@ -38,3 +39,17 @@ def test_deploy_uses_supplied_role_arn(monkeypatch):
 
     assert api_url == "https://example.com/score-agent-run"
     assert calls == ["arn:aws:iam::123:role/lambda-role"]
+
+
+def test_cleanup_deletes_api_then_lambda(monkeypatch):
+    calls = []
+
+    monkeypatch.setattr(deploy_module, "delete_http_api", lambda api_name, region: calls.append(("api", api_name, region)))
+    monkeypatch.setattr(deploy_module, "delete_lambda", lambda lambda_name, region: calls.append(("lambda", lambda_name, region)))
+
+    cleanup("agent-risk-score", "ap-southeast-1")
+
+    assert calls == [
+        ("api", "agent-risk-score-api", "ap-southeast-1"),
+        ("lambda", "agent-risk-score-lambda", "ap-southeast-1"),
+    ]

@@ -136,6 +136,32 @@ def deploy_http_api(api_name: str, lambda_name: str, lambda_arn: str, region: st
     return api["ApiEndpoint"] + "/score-agent-run"
 
 
+def delete_http_api(api_name: str, region: str) -> None:
+    import boto3
+
+    apigw = boto3.client("apigatewayv2", region_name=region)
+    for api in apigw.get_apis().get("Items", []):
+        if api.get("Name") == api_name:
+            apigw.delete_api(ApiId=api["ApiId"])
+
+
+def delete_lambda(lambda_name: str, region: str) -> None:
+    import boto3
+    from botocore.exceptions import ClientError
+
+    try:
+        boto3.client("lambda", region_name=region).delete_function(FunctionName=lambda_name)
+    except ClientError as error:
+        if error.response["Error"]["Code"] != "ResourceNotFoundException":
+            raise
+
+
+def cleanup(base_name: str, region: str) -> None:
+    names = build_resource_names(base_name)
+    delete_http_api(names.api_name, region)
+    delete_lambda(names.lambda_name, region)
+
+
 def deploy(base_name: str, endpoint_name: str, region: str, role_arn: str | None = None) -> str:
     names = build_resource_names(base_name)
     zip_path = Path("models") / "lambda" / f"{names.lambda_name}.zip"
@@ -151,7 +177,13 @@ def main() -> None:
     parser.add_argument("--endpoint-name", default="agent-risk-local-xgboost-endpoint")
     parser.add_argument("--region", default="ap-southeast-1")
     parser.add_argument("--role-arn")
+    parser.add_argument("--cleanup", action="store_true")
     args = parser.parse_args()
+
+    if args.cleanup:
+        cleanup(args.base_name, args.region)
+        print(f"Deleted Lambda/API resources for {args.base_name}")
+        return
 
     print(deploy(args.base_name, args.endpoint_name, args.region, args.role_arn))
 
