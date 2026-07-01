@@ -30,3 +30,19 @@ def test_run_agent_writes_trajectory(tmp_path, monkeypatch):
     assert trajectory["files_modified"] == ["demo_repo/app/auth.py"]
     assert trajectory["tests_passed"] is True
     assert trajectory["summary_claim_supported"] is True
+
+
+def test_run_agent_posts_trajectory_to_score_api(tmp_path, monkeypatch):
+    output = tmp_path / "run.json"
+    calls = []
+
+    monkeypatch.setitem(agent_runner.TOOLS, "read_file", lambda path: {"tool": "read_file", "status": "success", "path": path})
+    monkeypatch.setitem(agent_runner.TOOLS, "edit_file", lambda path, old_text, new_text: {"tool": "edit_file", "status": "success", "path": path})
+    monkeypatch.setitem(agent_runner.TOOLS, "run_tests", lambda command: {"tool": "run_tests", "status": "success", "command": command})
+    monkeypatch.setattr(agent_runner, "score_trajectory", lambda url, trajectory: calls.append((url, trajectory["task"])) or {"decision": "require_review"})
+
+    trajectory = run_agent("Fix login validation bug", output, score_api_url="https://example.com/score-agent-run")
+
+    assert calls == [("https://example.com/score-agent-run", "Fix login validation bug")]
+    assert trajectory["score_response"] == {"decision": "require_review"}
+    assert json.loads(output.read_text(encoding="utf-8"))["score_response"] == {"decision": "require_review"}
